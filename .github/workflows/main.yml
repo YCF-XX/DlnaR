@@ -39,4 +39,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: DlnaTV-debug
-          path: "${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk"￼Enter
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk
+
+# end
