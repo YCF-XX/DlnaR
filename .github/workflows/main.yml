@@ -1,0 +1,42 @@
+name: Build APK
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract zip and find project
+        run: |
+          find . -name "*.zip" -not -path "./.git/*" -print0 | xargs -0 -r -n1 unzip -oq
+          S=$(find . -name settings.gradle.kts -not -path "./.git/*" | head -1)
+          if [ -z "$S" ]; then echo "No project found. Files:"; find . -not -path "./.git/*" | head -40; exit 1; fi
+          echo "PROJECT_DIR=$(dirname "$S")" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Accept Android SDK licenses
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+
+      - name: Build debug APK
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: gradle assembleDebug --no-daemon --stacktrace
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DlnaTV-debug
+          path: "${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk"￼Enter
